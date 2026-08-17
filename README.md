@@ -32,7 +32,7 @@ Every patient in this dataset has four images, taken minutes apart:
 
 Here they are for one patient:
 
-![The four MRI images for one patient, with the tumour outline overlaid](figures/BraTS2021_01399_slice.png)
+![The four MRI images for one patient, with the tumour outline overlaid](Figures/BraTS2021_01399_slice.png)
 
 *Top row: the four images, same patient, same slice. Bottom row: the same images with the expert outline drawn on.*
 
@@ -70,7 +70,7 @@ So now the task is to train a model that draws the tumour outline by itself, giv
 
 ### Dice explanation
 
-![Four kinds of prediction error and the Dice score each gets](figures/dice_explained.png)
+![Four kinds of prediction error and the Dice score each gets](Figures/dice_explained.png)
 
 *Purple = both agree. Red = the model said tumour, but it isn't. Blue = it is tumour, but the model missed it.*
 
