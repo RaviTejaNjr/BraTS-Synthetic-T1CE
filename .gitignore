@@ -1,0 +1,96 @@
+# ---------------------------------------------------------------- data
+# Raw BraTS download (~12 GB) and everything derived from it.
+# Reproduce with build_index.py + make_splits.py + preprocess.py.
+BraTS2021_TrainingSet/
+BraTS2021_ValidationSet/
+*_dcm/
+prepared/
+*.nii
+*.nii.gz
+*.npz
+*.npy
+*.h5
+*.hdf5
+
+# NOT ignored, and deliberately so:
+#   splits.json          — the single most load-bearing file in the project.
+#                          Regenerating it with a different seed would make
+#                          every result before and after silently incomparable.
+#   brats2021_index.csv  — records exactly what was indexed. Contains absolute
+#                          Windows paths, so it is a record, not a portable
+#                          artifact.
+
+# ------------------------------------------------------------- figures
+# Ignore stray PNGs, but keep the ones the README links to — without this
+# exception GitHub renders the README with broken images.
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.svg
+!figures/*.png
+!figures/*.svg
+
+# ---------------------------------------------------- models and results
+# Checkpoints are large and regenerable. Metrics as CSV/JSON are small and
+# should be committed — they are the actual results.
+checkpoints/
+runs/
+wandb/
+mlruns/
+lightning_logs/
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.onnx
+
+# ---------------------------------------------------------------- python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+build/
+dist/
+*.egg-info/
+.eggs/
+
+# virtual environments (conda env `SA` lives outside the repo, but just in case)
+.venv/
+venv/
+env/
+ENV/
+.conda/
+
+# ---------------------------------------------------------------- notebooks
+.ipynb_checkpoints/
+# Uncomment if notebook output diffs become noisy in review:
+# *.ipynb
+
+# ---------------------------------------------------------------- tooling
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.env
+.envrc
+
+# ---------------------------------------------------------------- editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# ---------------------------------------------------------------- os
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+*.lnk
+# macOS / Linux
+.DS_Store
+.AppleDouble
+*.tmp
