@@ -8,7 +8,7 @@ A human body is mostly water and fat, so it is full of hydrogen atoms. A **Magne
 
 The machine doesn't take just one picture. It can take several, and each one makes different tissues look bright or dark — same patient, same session, same machine.
 
-That's because different tissues relax at different speeds. Listen early and you see the fast ones; listen later and you see the slow ones. Two separate things are happening as the atoms relax:
+Different tissues have different T1 and T2 relaxation properties. MRI acquisition parameters are chosen to emphasize these differences, producing different tissue contrasts.
 
 - **T1** — how fast they realign with the magnetic field
 - **T2** — how fast they fall out of sync with each other
@@ -17,18 +17,18 @@ Both are properties of the tissue, measured in milliseconds. Listening at a time
 
 ### The four images
 
-Every patient in this dataset has four images, taken minutes apart:
+Each patient has four **co-registered MRI modalities**: T1, T1CE, T2 and FLAIR. Each highlights different properties of the brain and tumour.
 
-| Scan | What it is | What's bright | Spot it by |
+| Scan | What it emphasizes | What's bright | Spot it by |
 |---|---|---|---|
-| **T1** | Listen early | Fat | Closest to normal anatomy; the fluid spaces in the middle of the brain are black |
-| **T2** | Listen late | Water | Looks like a negative of T1 — fluid glows white |
-| **FLAIR** | T2, with normal fluid switched off | Swelling only | Black fluid spaces *and* a bright halo around the tumour |
-| **T1CE** | T1, after a dye injection | Leaky tissue | A bright ring that is not there on T1 |
+| **T1** | Brain anatomy | Fat / white matter | Clear anatomical structure; CSF is dark |
+| **T2** | Water-rich tissue | Water / CSF | Fluid and many abnormalities appear bright |
+| **FLAIR** | Abnormal water while suppressing CSF | Edema / tumour-related abnormalities | CSF is dark, while edema often appears bright |
+| **T1CE** | Contrast enhancement | Contrast-enhancing tissue | Bright enhancing regions that are less visible on T1 |
 
-- **FLAIR** is T2 with the normal fluid switched off. Useful because brain swelling is also fluid but with the normal fluid hidden, only the abnormal swelling shows.
+- **FLAIR** is based on T2-weighted imaging but suppresses the signal from normal CSF. This makes abnormal water, such as **tumour-associated edema**, easier to see.
 
-- **T1CE** is T1 taken after injecting a dye. The dye makes whatever it reaches light up. Normally the brain blocks it, but tumours grow messy blood vessels that leak, so the dye seeps into the tumour and it glows.
+- **T1CE** is a T1-weighted scan acquired after **gadolinium contrast**. Where the blood-brain barrier is disrupted, contrast can enter the tissue and produce **bright enhancement**.
 
 Here they are for one patient:
 
@@ -36,22 +36,23 @@ Here they are for one patient:
 
 *Top row: the four images, same patient, same slice. Bottom row: the same images with the expert outline drawn on.*
 
-When we compare **T1** and **T1CE**, the two middle columns, they are from the same patient but minutes apart. The only difference is the dye injection, and a **bright ring** appears.
+When we compare **T1** and **T1CE**, they show the same patient's anatomy, but T1CE additionally highlights regions where the contrast agent has entered the tissue. The only difference is the dye injection, and **bright contrast-enhancing regions** can appear.
 
 ## Goals of the Project
 
-**1. One of the goals of this project is to generate this ring.** T1CE is expensive: it needs an injection, extra machine time, and some patients can't have it. That's why T1CE is the image this project tries to generate.
+**1. One of the goals of this project is to generate the contrast-enhancing regions visible on T1CE.** T1CE requires a gadolinium injection and additional imaging, and contrast administration is not suitable for every patient. That's why T1CE is the image this project tries to generate.
 
 **2. The other goal of this project is to measure whether generated T1CE images are actually useful**, not just convincing, by training a tumour-finding model twice - once on real data alone, once on real data plus generated T1CE - and comparing the Dice scores.
 
 **3. And the final goal is to find where synthetic data stops helping.** The comparison is run at five dataset sizes — 25, 50, 100, 250 and 951 patients. Synthetic data should matter most when real data is scarce and matter less once there is plenty; the aim is to locate that crossover point. The deliverable is one graph with two lines, and the point where they meet.
 
+**Research question:**  
+Does synthetic T1CE improve tumour segmentation, and does its benefit decrease as more real training data becomes available?
 
 ## Dataset
 
 **BraTS 2021**, from [The Cancer Imaging Archive](https://doi.org/10.7937/jc8x-9874),
-CC BY 4.0. 1,251 patients, each with all four images and a hand-drawn tumour
-outline, at 240 × 240 × 155 and 1 mm resolution.
+CC BY 4.0. 1,251 patients, Each patient has four co-registered MRI modalities and expert tumour segmentation labels, at 240 × 240 × 155 and 1 mm resolution.
 
 Chosen because the four images are already aligned to each other and stripped of
 facial features. Lining up scans of the same patient is a hard problem in itself,
@@ -101,13 +102,38 @@ Rescale each image against itself, since MRI brightness values have no fixed mea
 A **diffusion model** - the family behind image generators like Stable Diffusion. It learns by having noise added to real images until they are pure static, then learning to reverse that process.
 
 
-Here it isn't generating freely. It is given the other three images plus the tumour outline and asked to produce the matching T1CE:
 
-```
-FLAIR + T1 + T2 + tumour outline  →  generated T1CE
+Here it isn't generating freely. It is given the other three MRI modalities and asked to produce the corresponding T1CE:
+
+```text
+FLAIR + T1 + T2
+       ↓
+Conditional diffusion model
+       ↓
+Generated T1CE
 ```
 
 The three real images pin down the anatomy, so the generator only has to work out what the dye would have shown. Built with [MONAI](https://project-monai.github.io/), a medical-imaging library for PyTorch. The tumour-finder itself is a **U-Net**, the standard architecture for outlining structures in medical images.
+
+### Overall pipeline
+
+The complete experiment can be summarized as:
+
+```text
+T1 + T2 + FLAIR
+        ↓
+Conditional diffusion model
+        ↓
+Synthetic T1CE
+        ↓
+Tumour segmentation
+        ↓
+Dice score
+        ↓
+Compare with real-T1CE baseline
+        ↓
+Repeat at 25 / 50 / 100 / 250 / 951 patients
+```
 
 ## Citation
 
