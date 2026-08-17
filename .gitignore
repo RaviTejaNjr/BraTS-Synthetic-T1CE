@@ -28,7 +28,7 @@ prepared/
 *.jpeg
 *.gif
 *.svg
-!figures/*.png
+!Figures/*.png
 !figures/*.svg
 
 # ---------------------------------------------------- models and results
